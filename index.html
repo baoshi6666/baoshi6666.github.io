@@ -42,13 +42,44 @@
             outline: none;
             background: #fff;
             color: #333;
-            transition: box-shadow 0.3s;
+            transition: box-shadow 0.3s, transform 0.3s ease;
         }
         select:hover {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
         }
         select:focus {
             box-shadow: 0 0 5px #007bff;
+            transform: scale(1.1);
+        }
+        select option {
+            padding: 10px;
+            background: #ffffff;
+            color: #333;
+            transition: background 0.3s, color 0.3s;
+        }
+        select option:hover {
+            background: #007bff;
+            color: #ffffff;
+        }
+        /* 下拉菜单的移动效果 */
+        select {
+            position: relative;
+            overflow: hidden;
+        }
+        select option {
+            position: relative;
+            animation: slide-in 0.3s ease-in-out;
+        }
+        @keyframes slide-in {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
         input[type="submit"] {
             padding: 10px 20px;
@@ -97,6 +128,7 @@
             <option value="bing" selected>Bing</option>
             <option value="sougou">搜狗</option>
             <option value="souhu">搜狐</option>
+            <option value="google">Google</option>
         </select>
         <br>
         <input type="submit" value="搜索">
@@ -105,7 +137,7 @@
     <iframe id="resultsFrame" src="" style="display:none;"></iframe>
 
     <footer>
-        <p>&copy; 2024 搜索引擎，本站由baoshi666所拥有。</p>
+        <p>&copy; 2024 搜索引擎示例，本站由baoshi666所拥有。</p>
     </footer>
 
     <script>
@@ -127,7 +159,9 @@
                 case 'souhu':
                     url = 'https://search.sohu.com/?queryType=outside&keyword=' + encodeURIComponent(query);
                     break;
-
+                case 'google':
+                    url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+                    break;
             }
 
             var resultsFrame = document.getElementById('resultsFrame');
