@@ -3,150 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>选择搜索引擎</title>
+    <title>麦克风声音发送器</title>
     <style>
         body {
-            font-family: 'Roboto', Arial, sans-serif;
-            background: #f0f0f0;
-            color: #333;
-            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
         }
+
         h1 {
-            font-size: 2.5em;
+            font-size: 24px;
             margin-bottom: 20px;
         }
-        form {
-            display: inline-block;
-            background: #ffffff;
-            padding: 20px;
+
+        .container {
+            text-align: center;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        input[type="text"] {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 300px;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            outline: none;
         }
-        select {
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            outline: none;
-            background: #fff;
-            color: #333;
-            transition: box-shadow 0.3s;
-        }
-        select:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        select:focus {
-            box-shadow: 0 0 5px #007bff;
-        }
-        input[type="submit"] {
-            padding: 10px 20px;
-            font-size: 16px;
-            background: #007bff;
+
+        .button {
+            background-color: #4CAF50;
             color: white;
+            padding: 10px 20px;
+            margin: 15px 0;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
-        input[type="submit"]:hover {
-            background: #0056b3;
+
+        .button:hover {
+            background-color: #45a049;
         }
-        footer {
-            margin-top: 20px;
-            font-size: 0.8em;
-            color: #777;
-        }
-        iframe {
-            width: 100%;
-            height: 600px;
-            border: none;
-            border-radius: 10px;
-            margin-top: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        @media (max-width: 768px) {
-            input[type="text"] {
-                width: 80%;
-            }
-            iframe {
-                height: 400px;
-            }
+
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #888;
         }
     </style>
 </head>
 <body>
 
-    <h1>欢迎使用搜索引擎</h1>
-    <form id="searchForm" onsubmit="return performSearch()">
-        <input type="text" id="searchQuery" name="q" placeholder="请输入搜索内容" required>
-        <br>
-        <select id="searchEngine">
-            <option value="360">360搜索</option>
-            <option value="bing" selected>Bing</option>
-            <option value="sougou">搜狗</option>
-            <option value="souhu">搜狐</option>
-        </select>
-        <br>
-        <input type="submit" value="搜索">
-    </form>
-
-    <iframe id="resultsFrame" src="" style="display:none;"></iframe>
-
-    <footer>
-        <p>&copy; 2024 搜索引擎，本站由baoshi666所拥有。</p>
-    </footer>
+    <div class="container">
+        <h1>麦克风声音发送器</h1>
+        <button class="button" id="startButton">开始捕获麦克风声音</button>
+        <button class="button" id="connectButton">连接蓝牙音响</button>
+        <div class="status" id="status">状态：未连接</div>
+    </div>
 
     <script>
-        function performSearch() {
-            var query = document.getElementById('searchQuery').value;
-            var engine = document.getElementById('searchEngine').value;
-            var url;
+        let audioContext, microphoneStream, audioSourceNode, bluetoothDevice, audioOutput;
 
-            switch(engine) {
-                case '360':
-                    url = 'https://www.so.com/s?q=' + encodeURIComponent(query);
-                    break;
-                case 'bing':
-                    url = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
-                    break;
-                case 'sougou':
-                    url = 'https://www.sogou.com/sie?hdq=AQ7CZ&query=' + encodeURIComponent(query);
-                    break;
-                case 'souhu':
-                    url = 'https://search.sohu.com/?queryType=outside&keyword=' + encodeURIComponent(query);
-                    break;
+        // 开始捕获麦克风音频
+        document.getElementById('startButton').addEventListener('click', function() {
+            startMicrophoneCapture();
+        });
 
+        // 蓝牙连接按钮事件
+        document.getElementById('connectButton').addEventListener('click', function() {
+            connectBluetooth();
+        });
+
+        // 捕获麦克风音频
+        async function startMicrophoneCapture() {
+            try {
+                // 获取麦克风音频流
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphoneStream = stream;
+
+                // 创建音频上下文
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+                // 创建音频源节点
+                audioSourceNode = audioContext.createMediaStreamSource(microphoneStream);
+
+                // 如果连接了蓝牙设备，则输出到蓝牙设备
+                if (bluetoothDevice) {
+                    const bluetoothAudioOutput = await getBluetoothAudioOutput();
+                    audioSourceNode.connect(bluetoothAudioOutput); // 输出到蓝牙音响
+                    document.getElementById('status').innerText = `状态：音频已输出到蓝牙音响 ${bluetoothDevice.name}`;
+                } else {
+                    // 默认输出到浏览器的音频设备（扬声器或耳机）
+                    audioSourceNode.connect(audioContext.destination); // 输出到默认扬声器
+                    document.getElementById('status').innerText = "状态：正在捕获麦克风声音";
+                }
+            } catch (error) {
+                document.getElementById('status').innerText = `状态：获取麦克风失败 - ${error}`;
+            }
+        }
+
+        // 获取蓝牙设备的音频输出
+        async function getBluetoothAudioOutput() {
+            try {
+                if (!bluetoothDevice) {
+                    throw new Error('蓝牙设备未连接');
+                }
+                // 示例代码：假设设备支持音频输出
+                const audioService = await bluetoothDevice.gatt.connect();
+                const audioOutput = audioService.getPrimaryService('audio');
+                return audioOutput;
+            } catch (error) {
+                console.error('获取蓝牙音频输出失败：', error);
+                return null;
+            }
+        }
+
+        // 蓝牙连接逻辑
+        async function connectBluetooth() {
+            if (!navigator.bluetooth) {
+                alert("您的浏览器不支持Web Bluetooth API");
+                return;
             }
 
-            var resultsFrame = document.getElementById('resultsFrame');
-            resultsFrame.src = url;
-            resultsFrame.style.display = 'block';  // 显示 iframe
-            return false;  // 不提交表单
+            try {
+                // 请求连接蓝牙设备
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['audio'] }],
+                    optionalServices: ['battery_service']
+                });
+                bluetoothDevice = device;
+                document.getElementById('status').innerText = `状态：已连接到 ${device.name}`;
+                
+                // 这里仅是连接蓝牙设备，音频流的传输将依赖于浏览器和设备支持的协议
+            } catch (error) {
+                document.getElementById('status').innerText = `状态：连接失败 - ${error}`;
+            }
         }
     </script>
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>示例页面 - 禁用右键菜单</title>
-    <script type="text/javascript">
-        // 禁用右键菜单
-        document.addEventListener("contextmenu", function(event) {
-            event.preventDefault(); // 阻止右键菜单的显示
-        });
-    </script>
-
 </body>
 </html>
